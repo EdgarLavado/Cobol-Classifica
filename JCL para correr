@@ -1,0 +1,27 @@
+//U504007A JOB (ACCTNUM,EXP),'SEARCH',CLASS=D,                      
+//         NOTIFY=&SYSUID,MSGCLASS=X,MSGLEVEL=(1,1)                 
+//*                                                                 
+//STEP0010 EXEC PGM=IDCAMS                                          
+//SYSPRINT DD SYSOUT=*                                         
+//SYSIN    DD *                                                 
+  DELETE U504007.DESA.SAIDA1
+  DELETE U504007.DESA.SAIDA2 
+/*  
+//STEP0020 EXEC PGM=PRGINSP2                                       
+//******************************************************************
+//SYSOUT    DD SYSOUT=*                                             
+//SORTIN    DD DSN=U504007.DESA.ARQUIVO1,                            
+//             DISP=SHR                                             
+//SORTOUT   DD DSN=U504007.DESA.SAIDA1,                             
+//             DISP=(,CATLG,DELETE),                                
+//             SPACE=(TRK,(200,50),RLSE),                           
+//             LRECL=150,RECFM=FB   
+//SORTOUT   DD DSN=U504007.DESA.SAIDA2,                             
+//             DISP=(,CATLG,DELETE),                                
+//             SPACE=(TRK,(200,50),RLSE),                           
+//             LRECL=150,RECFM=FB                              
+//SYSIN     DD *                            
+//*  SORT FIELDS=(39,6,CH,A)                   
+//*  OMIT FIELDS='LISBOA'                      
+//*   SORT FIELDS=(1,8,ZD,A)                
+/*                  
