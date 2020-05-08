@@ -1,0 +1,407 @@
+       IDENTIFICATION DIVISION.                                        
+       PROGRAM-ID. SEGUNDO.                                            
+       AUTHOR. EDGAR.                                                  
+       DATE-WRITTEN.                                                   
+       ENVIRONMENT DIVISION.                                           
+      *****************************************************************
+      * DESC-I: PROGRAMA/CLASSIFICAR OS REGISTOS EM UM FICHEIRO E      
+      *      *  MOVER UMA COPIA PARA 2 PASTAS SEGUNDO A CLASSIFICACAO  
+      * DESC-F:    EXERCICIO DO BOOTCAMP                               
+      *****************************************************************
+      *AUTHOR. EDGAR.                                                  
+      *DATE-WRITTEN. 2020-02-25.                                       
+      *REF.                                                            
+      *DESC ALT.                                                       
+      *                                                                
+       CONFIGURATION SECTION.                                                                                
+       SOURCE-COMPUTER. EXERCICIO.                                  
+       OBJECT-COMPUTER. EXERCICIO.                                  
+       SPECIAL-NAMES.                                               
+      *****************************                                 
+       INPUT-OUTPUT SECTION.                                        
+       FILE-CONTROL.                                                
+           SELECT  A0001R  ASSIGN TO A0001R                         
+                           ORGANIZATION IS SEQUENTIAL               
+                           ACCESS MODE IS SEQUENTIAL                
+                           FILE STATUS IS WS-A0001R-STATUS.         
+      **                                                            
+           SELECT  B0001R  ASSIGN TO B0001R                         
+                           ORGANIZATION IS SEQUENTIAL               
+                           ACCESS MODE IS SEQUENTIAL                
+                           FILE STATUS IS WS-B0001R-STATUS.         
+      **                                                                                                                      
+           SELECT  C0001R  ASSIGN TO C0001R                          
+                           ORGANIZATION IS SEQUENTIAL                
+                           ACCESS MODE IS SEQUENTIAL                 
+                           FILE STATUS IS WS-C0001R-STATUS.          
+      **                                                             
+      *************************************************************  
+       DATA DIVISION.                                                
+       FILE SECTION.                                                 
+      * *                                                            
+      * *  -   FICHEIRO ENTRADA 1   -                                
+      * *                                                            
+       FD  A0001R     BLOCK CONTAINS 0 RECORDS                       
+                      RECORDING MODE IS F                            
+                      LABEL RECORD IS STANDARD.                      
+         01 EA0001R.                                                 
+            05 WS-EACODIGO                PIC 9(8).                  
+            05 WS-EANOME                  PIC X(21).             
+            05 WS-EACITYCODE              PIC 9(7).              
+            05 WS-EACIDADE                PIC X(13).             
+            05 WS-ESCPOSTAL               PIC 9(6).              
+            05 FILLER                     PIC X(25).             
+      * *                                                        
+      * *  -   FICHEIRO SAIDA 1   -                              
+      * *                                                        
+       FD  B0001R      BLOCK CONTAINS 0 RECORDS                  
+                       RECORDING MODE IS F                       
+                       LABEL RECORD IS STANDARD.                 
+         01 EB0001R.                                             
+            05 WS-EBCODIGO                PIC 9(8).              
+            05 WS-EBNOME                  PIC X(21).             
+            05 WS-EBCITYCODE              PIC 9(7).              
+            05 WS-EBCIDADE                PIC X(13).             
+            05 WS-EBCPOSTAL               PIC 9(6).               
+            05 FILLER                     PIC X(25).              
+      * *                                                         
+      * *  -   FICHEIRO SAIDA 2    -                              
+      * *                                                         
+       FD  C0001R     BLOCK CONTAINS 0 RECORDS                    
+                      LABEL RECORD ARE STANDARD                   
+                      RECORDING MODE IS F.                        
+         01 EC0001R.                                              
+            05 WS-ECCODIGO                PIC 9(8).               
+            05 WS-ECNOME                  PIC X(21).              
+            05 WS-ECCITYCODE              PIC 9(7).               
+            05 WS-ECCIDADE                PIC X(13).              
+            05 WS-ECCPOSTAL               PIC 9(6).               
+            05 FILLER                     PIC X(25).              
+      **   
+	      *****************************************************************
+      *                      WORKING-STORAGE                          *
+      *****************************************************************
+       WORKING-STORAGE SECTION.                                        
+        01 WS-CONSTANTES.                                              
+          05 WS-CLISBOA             PIC X(6) VALUE 'LISBOA'.           
+          05 WS-CPARIS              PIC X(5) VALUE 'PARIS'.            
+          05 WS-CROMA               PIC X(4) VALUE 'ROMA'.             
+          05 WS-CSP                 PIC X(8) VALUE 'SAOPAULO'.         
+          05 WS-CON-16              PIC X(8) VALUE '16'.               
+      **                                                               
+        01  WS-SWITCHES.                                               
+          05 WS-A0001R-STATUS         PIC X(2) VALUE '00'.             
+             88 WS-A0001R-OK                VALUE '00'.                
+             88 WS-A0001R-EOF               VALUE '10'.                
+          05 WS-B0001R-STATUS         PIC X(2) VALUE '00'.             
+             88 WS-B0001R-OK               VALUE '00'.                
+             88 WS-B0001R-EOF              VALUE '10'.                
+          05 WS-C0001R-STATUS        PIC X(2) VALUE '00'.             
+             88 WS-C0001R-OK                 VALUE '00'.              
+             88 WS-C0001R-EOF                VALUE '10'.              
+          05 WS-DEBUG                PIC X(1) VALUE 'N'.              
+                 88 DEBUG-S                VALUE 'S'.                 
+                 88 DEBUG-N                VALUE 'N'.                 
+       PROCEDURE DIVISION.                                            
+      ****************************************************************
+      *        0000-MAINLINE                                *         
+      ****************************************************************
+        0000-MAINLINE.                                                
+      *                                                               
+            DISPLAY '====================================='.          
+            DISPLAY 'INICIO PROGRAMA  -  SEGUNDO'.                    
+            DISPLAY '====================================='.         
+      *                                                              
+            PERFORM 1000-INICIO-PROGRAMA                             
+            THRU 1000-INICIO-PROGRAMA-EXIT.                          
+      *                                                              
+            PERFORM 2000-PROC-PROGRAMA                               
+            THRU 2000-PROC-PROGRAMA-EXIT                             
+             UNTIL WS-A0001R-EOF                                     
+      *                                                              
+            PERFORM 3000-FINAL-PROGRAMA                              
+            THRU 3000-FINAL-PROGRAMA-EXIT.                           
+      *                                                              
+            DISPLAY '======================================'.        
+            DISPLAY 'FINAL PROGRAMA  -  SEGUNDO'.                    
+            DISPLAY '======================================'.        
+      *                                                              
+        0000-MAINLINE-EXIT.                                          
+            STOP RUN.                                                
+      *************************************************************  
+      *               1000-INICIO-PROGRAMA                           
+      *************************************************************  
+      *                                                              
+        1000-INICIO-PROGRAMA.                                        
+      *                                                              
+            IF DEBUG-N                                               
+            DISPLAY 'INICIO-PROGRAM'                                 
+            END-IF.                                                  
+      *--- INICIALIZACOES DE VARIAVEIS. ---------------------------  
+            PERFORM 1050-INICIALIZACOES                              
+            THRU 1050-INICIALIZACOES-EXIT.                           
+      *                                                              
+      *--- ABERTURA DOS FICHEIROS ---------------------------------- 
+            PERFORM 6025-OPEN-FICHEIRO1                               
+            THRU 6025-OPEN-FICHEIRO1-EXIT.                            
+      *                                                               
+            PERFORM 6050-OPEN-FICHEIRO2                               
+            THRU 6050-OPEN-FICHEIRO2-EXIT.                            
+      *                                                               
+            PERFORM 6075-OPEN-FICHEIRO3                               
+            THRU 6075-OPEN-FICHEIRO3-EXIT.                            
+      *                                                               
+            PERFORM 6100-READ-FICHEIRO                                
+            THRU 6100-READ-FICHEIRO-EXIT.                             
+         1000-INICIO-PROGRAMA-EXIT.                                   
+             EXIT.                                                    
+      *                                                               
+      ****************************************************************
+      *                    2000-PROC-PROGRAMA                         
+      **************************************************************** 
+        2000-PROC-PROGRAMA.                                            
+      *                                                                
+            IF DEBUG-N                                                 
+              DISPLAY 'INICIO 2000-PROCESSOS'                          
+            END-IF.                                                    
+      *                                                                
+              EVALUATE WS-EACIDADE                                     
+                WHEN WS-CLISBOA                                        
+                MOVE EA0001R TO EB0001R                                
+                PERFORM 6225-WRITE-FICHEIROS                           
+                   THRU 6225-WRITE-FICHEIROS-EXIT                      
+      *                                                                
+                WHEN OTHER                                             
+                MOVE EA0001R TO EC0001R                                
+                PERFORM 6250-WRITE-FICHEIROS                           
+                   THRU 6250-WRITE-FICHEIROS-EXIT                      
+      *                                                                
+                  PERFORM 6100-READ-FICHEIRO                           
+                     THRU 6100-READ-FICHEIRO-EXIT.                     
+      *                                                                
+        2000-PROC-PROGRAMA-EXIT.                                       
+            EXIT.                                                      
+      *                                                                
+      *****************************************************************
+      *                      3000-FINAL-PROGRAMA                       
+      *****************************************************************
+        3000-FINAL-PROGRAMA.                                           
+      *                                                                
+               IF DEBUG-N                                              
+               DISPLAY '3000-FINAL-PROGRAMA'                           
+               END-IF.                                                 
+      *                                                            
+                                                                   
+                 PERFORM 3100-DISPLAY                              
+                    THRU 3100-DISPLAY-EXIT.                        
+      *                                                            
+                 PERFORM 6325-CLOSE-FICHEIRO1                      
+                    THRU 6325-CLOSE-FICHEIRO1-EXIT.                
+      *                                                            
+                 PERFORM 6350-CLOSE-FICHEIRO2                      
+                    THRU 6350-CLOSE-FICHEIRO2-EXIT.                
+      *                                                            
+                 PERFORM 6375-CLOSE-FICHEIRO3                      
+                    THRU 6375-CLOSE-FICHEIRO3-EXIT.                
+      *                                                            
+        3000-FINAL-PROGRAMA-EXIT.                                  
+               EXIT.                                               
+      ***************************************************************  
+      *                       1050-INICIALIZACOES                      
+      ***************************************************************  
+        1050-INICIALIZACOES.                                           
+      *                                                                
+            ACCEPT WS-DEBUG FROM SYSIN.                                
+            IF DEBUG-N                                                 
+            DISPLAY 'INICIAR VARIAVEIS'                                
+            END-IF.                                                    
+      *                                                                
+            INITIALIZE  WS-CONSTANTES.                                 
+      *--- OUTRAS INICIALIZA   ES  ------------------------------------
+      *                                                                
+        1050-INICIALIZACOES-EXIT.                                      
+            EXIT.                                                      
+      *****************************************************************
+      *                6000-OPEN-FICHEIOS                             *
+      *****************************************************************
+        6025-OPEN-FICHEIRO1.                                           
+      *                                                                
+            IF DEBUG-N                                                 
+             DISPLAY 'ABRIR ARQUIVO DE INPUT'                          
+            END-IF                                                     
+      *                                                                
+           OPEN INPUT A0001R.                                          
+            IF NOT WS-A0001R-OK                                        
+              DISPLAY 'ERRO AO LER FICHEIRO DE ENTRADA 1'              
+              DISPLAY 'CODIGO DE ERRO: ' WS-A0001R-STATUS              
+              PERFORM 9000-ABEND                                       
+              THRU 9000-ABEND-EXIT                                     
+            END-IF.                                                    
+      *                                                                
+	        6025-OPEN-FICHEIRO1-EXIT.                                    
+      *                                                              
+      *                                                              
+        6050-OPEN-FICHEIRO2.                                         
+            IF DEBUG-N                                               
+             DISPLAY 'ABRIR ARQUIVO DE OUTPUT1'                      
+            END-IF                                                   
+      *                                                              
+           OPEN OUTPUT B0001R.                                       
+            IF NOT WS-B0001R-OK                                      
+              DISPLAY 'ERRO AO LER FICHEIRO DE SAIDA 1'              
+              DISPLAY 'CODIGO DE ERRO: ' WS-B0001R-STATUS            
+              PERFORM 9000-ABEND                                     
+              THRU 9000-ABEND-EXIT                                   
+            END-IF.                                                  
+      *                                                              
+        6050-OPEN-FICHEIRO2-EXIT.                                    
+      *                                                              
+        6075-OPEN-FICHEIRO3.                                         
+      *                                                              
+            IF DEBUG-N                                               
+             DISPLAY 'ABRIR ARQUIVO DE INPUT'                        
+            END-IF.                                                  
+      *                                                              
+           OPEN OUTPUT C0001R.                                       
+            IF NOT WS-C0001R-OK                                      
+              DISPLAY 'ERRO AO LER FICHEIRO DE SAIDA 2'              
+              DISPLAY 'CODIGO DE ERRO: ' WS-C0001R-STATUS            
+              PERFORM 9000-ABEND                                     
+              THRU 9000-ABEND-EXIT                                   
+            END-IF.                                                  
+      *                                                              
+        6075-OPEN-FICHEIRO3-EXIT.                                      
+              EXIT.                                                    
+      **************************************************************** 
+      *                6100-READ-FICHEIROS                             
+      *****************************************************************
+        6100-READ-FICHEIRO.                                            
+      *                                                                
+            IF DEBUG-N                                                 
+             DISPLAY 'LER O FICHEIRO DE ENTRADA'                       
+            END-IF.                                                    
+      *                                                                
+            READ A0001R.                                               
+            EVALUATE TRUE                                              
+               WHEN WS-A0001R-EOF                                      
+                 CONTINUE                                              
+               WHEN OTHER                                              
+	                   DISPLAY 'ERRO AO LER O FICHEIRO DE ENTRADA'       
+                   DISPLAY 'CODIGO DE ERRO: ' WS-A0001R-STATUS       
+                   PERFORM 9000-ABEND                                
+                      THRU 9000-ABEND-EXIT                           
+            END-EVALUATE.                                            
+        6100-READ-FICHEIRO-EXIT.                                     
+              EXIT.                                                  
+      ***************************************************************
+      *                6225-WRITE-FICHEIOS                           
+      ***************************************************************
+        6225-WRITE-FICHEIROS.                                        
+      *                                                              
+            IF DEBUG-N                                               
+             DISPLAY ' ESCREVE O FICHEIRO DE SAIDA 1'                
+            END-IF.                                                  
+      *                                                              
+	              WRITE EB0001R.                                             
+            EVALUATE TRUE                                              
+               WHEN WS-B0001R-OK                                       
+                   CONTINUE                                            
+               WHEN OTHER                                              
+                   DISPLAY 'ERRO  NO FICHEIRO 1'                       
+                   DISPLAY 'CODIGO DE ERRO: ' WS-B0001R-STATUS         
+                   PERFORM 9000-ABEND                                  
+                       THRU 9000-ABEND-EXIT                            
+           END-EVALUATE.                                               
+        6225-WRITE-FICHEIROS-EXIT.                                     
+              EXIT.                                                    
+      *****************************************************************
+        6250-WRITE-FICHEIROS.                                          
+      *                                                                
+               IF DEBUG-N                                              
+               DISPLAY ' ESCREVE O FICHEIRO DE SAIDA 2'                
+               END-IF.                                                 
+      *                                                                
+               WRITE EC0001R.                                          
+               EVALUATE TRUE                                           
+                    WHEN WS-C0001R-OK                                  
+                         CONTINUE                                      
+                    WHEN OTHER                                         
+                        DISPLAY 'ERRO  NO FICHEIRO 2'                  
+                        DISPLAY 'CODIGO DE ERRO: '  WS-C0001R-STATUS   
+                        PERFORM 9000-ABEND                             
+                           THRU 9000-ABEND-EXIT                        
+               END-EVALUATE.                                           
+        6250-WRITE-FICHEIROS-EXIT.                                     
+              EXIT.                                                    
+      **************************************************************** 
+      *                     3100-DISPLAY                              
+      ****************************************************************
+        3100-DISPLAY.                                                 
+      *                                                               
+            DISPLAY '********************************************'.   
+            DISPLAY '******************DONE**********************'.   
+            DISPLAY '********************************************'.   
+      *                                                               
+        3100-DISPLAY-EXIT.                                            
+               EXIT.                                                  
+      ****************************************************************
+      *                6300-CLOSE-FICHEIOS                            
+      ****************************************************************
+        6325-CLOSE-FICHEIRO1.                                         
+           CLOSE A0001R.                                              
+      *                                                               
+	               EVALUATE TRUE                                         
+                   WHEN WS-A0001R-OK                                 
+                       CONTINUE                                      
+                   WHEN OTHER                                        
+                       DISPLAY 'ERRO AO FECHAR O FICHEIRO 1'         
+                       DISPLAY 'CODIGO DE ERRO: ' WS-A0001R-STATUS   
+                       PERFORM 9000-ABEND                            
+                          THRU 9000-ABEND-EXIT                       
+               END-EVALUATE.                                         
+      *                                                              
+         6325-CLOSE-FICHEIRO1-EXIT.                                  
+               EXIT.                                                 
+      *                                                              
+         6350-CLOSE-FICHEIRO2.                                       
+            CLOSE B0001R.                                            
+      *                                                              
+	              EVALUATE TRUE                                         
+                   WHEN WS-B0001R-OK                                
+                       CONTINUE                                     
+                   WHEN OTHER                                       
+                   DISPLAY 'ERRO AO FECHAR O FICHEIRO 2'            
+                   DISPLAY 'CODIGO DE ERRO: ' WS-B0001R-STATUS      
+                   PERFORM 9000-ABEND                               
+                      THRU 9000-ABEND-EXIT                          
+              END-EVALUATE.                                         
+      *                                                             
+         6350-CLOSE-FICHEIRO2-EXIT.                                 
+              EXIT.                                                 
+      *                                                             
+         6375-CLOSE-FICHEIRO3.                                      
+             CLOSE C0001R.                                          
+      *                                                             
+	              EVALUATE TRUE                                           
+                   WHEN WS-C0001R-OK                                  
+                       CONTINUE                                       
+                   WHEN OTHER                                         
+                   DISPLAY 'ERRO AO FECHAR O FICHEIRO 3'              
+                   DISPLAY 'CODIGO DE ERRO: ' WS-C0001R-STATUS        
+                   PERFORM 9000-ABEND                                 
+                       THRU 9000-ABEND-EXIT                           
+              END-EVALUATE.                                           
+        6375-CLOSE-FICHEIRO3-EXIT.                                    
+             EXIT.                                                    
+      ****************************************************************
+      *                          9000-ABEND                           
+      ****************************************************************
+        9000-ABEND.                                                   
+      *                                                               
+                MOVE '16'                   TO  RETURN-CODE.           
+      *                                                                
+                STOP RUN.                                              
+      *                                                                
+        9000-ABEND-EXIT.                                               
+            EXIT.                                                      
+      *****************************************************************	  
